@@ -1,0 +1,7 @@
+*.lock
+cmds.txt
+.coverage
+coverage
+coverage-vim.log
+out.txt
+.ycm_extra_conf.py

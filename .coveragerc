@@ -1,0 +1,3 @@
+[run]
+omit = *.local*
+dynamic_context = test_function
