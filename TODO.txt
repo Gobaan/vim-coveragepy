@@ -1,0 +1,9 @@
+* Side bar with all tests and their status
+* Display exception for a given test case
+* Function/class display how many tests pass and fail on that line
+
+
+Done:
+# Marks loading with new file
+# Refresh of marks without closing file
+# Run pytest and refresh the marks

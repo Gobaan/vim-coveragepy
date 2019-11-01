@@ -14,46 +14,18 @@ sys.path.append(python_module_path)
 endpython
 endfunction
 
+function! AddCoverageMarks()
+python3 << endpython
+import vim_mark_coverage
+vim_mark_coverage.mark_buffer(vim.current.buffer)
+endpython
+endfunction
 
-function! MyVimPlugin()
+function! AttachCoverageListener()
 python3 << endpython
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import time
-import mark_coverage
-
-def is_keyword(word):
-    return word.split()[0] in ('', 'def', 'class', 'else:')
-
-def mark_buffer():
-    cb = vim.current.buffer
-    if not mark_coverage.handles(cb.name):
-        return
-
-    try:
-        marker = mark_coverage.get_file_marker(cb.name)
-        print ('got markers')
-    except TypeError:
-        print (f'no coverage information found for {cb.name}')
-        return
-
-    for line_number in range(len(cb)):
-        sign = ''
-        if not cb[line_number].strip():
-            continue
-
-        if marker.line_fails(line_number + 1):
-            sign = 'failing'
-        elif not marker.line_is_tested(line_number + 1) and not is_keyword(cb[line_number]):
-            sign = 'notcovered'
-
-        if sign:
-            cmd = f"execute ':sign place {1000 + line_number} line={line_number + 1} name={sign} file={cb.name}'"
-            vim.command(cmd)
-
-
-print ('started')
-mark_buffer()
 class CoverageHandler(PatternMatchingEventHandler):
     def __init__(self):
         PatternMatchingEventHandler.__init__(self,
@@ -61,7 +33,6 @@ class CoverageHandler(PatternMatchingEventHandler):
         ignore_directories=True, case_sensitive=False)
 
     def on_created(self, event):
-        print ("testing")
         vim.command("Coveragepy refresh")
 
 path = '.'
@@ -72,5 +43,24 @@ observer.start()
 endpython
 endfunction
 
+function! RecalculateCoverageMarks()
+python3 << endpython
+print ('Running coveragepy')
+import subprocess
+import vim_mark_coverage
+import mark_coverage
+import os.path
+
+working_directory = mark_coverage.find_coverage_folder()
+with open(os.path.join(working_directory, 'out.txt'), 'w') as fp:
+    p = subprocess.run(['py.test', '--cov', '-rf'], stdout=fp, cwd=working_directory)
+
+print ('Updating marks')
+endpython
+
+tabdo call AddCoverageMarks()
+endfunction
+
 :call EnableImports()
-au VimEnter * call MyVimPlugin()
+command RunCoverage call RecalculateCoverageMarks()
+au BufRead *.py call AddCoverageMarks()

@@ -105,7 +105,7 @@ def get_db_context(name):
         logger.debug(context_query)
         contexts = c.execute(context_query)
         contexts = c.fetchall()
-    logging.debug(contexts)
+    logger.debug(contexts)
     id_test = {context[0]: context[1] for context in contexts}
     test_lines = {id_test[line[1]]: line[2] for line in lines}
 
@@ -122,6 +122,7 @@ def get_failing_tests(pytest_output):
 
     MARKER = '=========================== short test summary info ============================\n'
     try:
+        logger.debug(pytest_output)
         failures = pytest_output[pytest_output.index(MARKER) + 1:]
     except IndexError:
         print ("Index Error")
