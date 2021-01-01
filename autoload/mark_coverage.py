@@ -3,6 +3,7 @@ import sqlite3
 import coverage.numbits
 import io
 import os
+import os.path
 
 logger = logging.getLogger('coverage')
 logger.setLevel(logging.DEBUG)
@@ -10,7 +11,6 @@ fh = logging.FileHandler('coverage-vim.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
-
 
 def compress(arrays):
     if len(arrays) == 0:
@@ -21,29 +21,25 @@ def compress(arrays):
 
     return coverage.numbits.numbits_union(arrays[0], compress(arrays[1:]))
 
+def get_absolute_path(name):
+    return os.path.join(COVERAGE_FOLDER, name)
 
-def matching_key(name, dictionary):
-    while name:
-        if name in dictionary:
-            return name
-        name = '.'.join(name.split('.')[1:])
+def test_name_to_path(name):
+    name = name.split('.')
+    function_name = name[-1]
+    name = name[:-1]
+    name[-1] = f'{name[-1]}.py'
+    filename = os.path.join(*name)
 
-    return None
-
+    return f'{filename}::{function_name}'
 
 class PythonFileCover(object):
     def __init__(self, name, test_lines, failing_tests):
         self.name = name
         self.test_lines = test_lines
         self.failing_tests = failing_tests
-        logger.debug({ test: coverage.numbits.numbits_to_nums(numbits)
-            for test, numbits in self.test_lines.items()})
         self.tested_lines = compress(list(self.test_lines.values()))
-        filenames = [matching_key(test, self.test_lines) for test in self.failing_tests]
-        filenames = [name for name in filenames if name]
-        self.failing_lines = compress([self.test_lines[test] for test in filenames])
-        logger.debug(coverage.numbits.numbits_to_nums(self.tested_lines))
-
+        self.failing_lines = compress([self.test_lines[test] for test in self.failing_tests])
 
     def line_is_tested(self, line_number):
         try:
@@ -58,10 +54,13 @@ class PythonFileCover(object):
             return False
 
     def get_tests_covering_line(self, line_number):
-        return [test for test, value in self.test_lines.items()
-            if coverage.numbits.num_in_numbits(value, line_number)]
+        names =  [test for test, value in self.test_lines.items()
+            if coverage.numbits.num_in_numbits(line_number, value)]
+
+        return names
 
     def get_test_is_successful(self, name):
+
         return name not in self.failing_tests
 
 def find_coverage_folder():
@@ -106,8 +105,8 @@ def get_db_context(name):
         contexts = c.execute(context_query)
         contexts = c.fetchall()
     logger.debug(contexts)
-    id_test = {context[0]: context[1] for context in contexts}
-    test_lines = {id_test[line[1]]: line[2] for line in lines}
+    id_test = {context[0]: test_name_to_path(context[1]) for context in contexts if context[1]}
+    test_lines = {id_test[line[1]]: line[2] for line in lines if line[1] in id_test}
 
     return test_lines
 
@@ -115,8 +114,7 @@ def get_db_context(name):
 def get_failing_tests(pytest_output):
     def format_test_name(name):
         name = name.split()[1]
-        name = name.replace('/', '.')
-        name = name.replace('.py::', '.')
+        _, name = os.path.split(name)
 
         return name
 
@@ -129,13 +127,13 @@ def get_failing_tests(pytest_output):
 
         return [], 0
 
-    failing_tests = [format_test_name(failure) for failure in failures[:-1]]
+    failing_tests = {format_test_name(failure) for failure in failures[:-1]}
     number_failures = int(failures[-1].split()[1])
 
     if len(failing_tests) != number_failures:
         raise Exception("Mismatched length of failures")
 
-    return set(failing_tests)
+    return failing_tests
 
 
 def handles(name):
@@ -143,12 +141,14 @@ def handles(name):
 
 def get_file_marker(name):
     test_lines = get_db_context(name)
-    pytest_output_file = os.path.join(find_coverage_folder(), 'out.txt')
+    pytest_output_file = os.path.join(COVERAGE_FOLDER, 'out.txt')
     with open(pytest_output_file) as fp:
         failing_tests = get_failing_tests(fp.readlines())
 
     return PythonFileCover(name, test_lines, failing_tests)
 
+
+COVERAGE_FOLDER = find_coverage_folder()
 
 if __name__ == '__main__':
     name = '/home/lordofall/menu-translator-django/backend/translator/schema.py'

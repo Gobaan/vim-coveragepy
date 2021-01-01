@@ -2,7 +2,7 @@
 :sign define failing text=F
 let g:plugin_path = expand('<sfile>:p:h')
 
-function! EnableImports()
+function! CoveragePyWatch#EnableImports()
 python3 << endpython
 import os
 import sys
@@ -14,14 +14,14 @@ sys.path.append(python_module_path)
 endpython
 endfunction
 
-function! AddCoverageMarks()
+function! CoveragePyWatch#AddCoverageMarks()
 python3 << endpython
 import vim_mark_coverage
 vim_mark_coverage.mark_buffer(vim.current.buffer)
 endpython
 endfunction
 
-function! AttachCoverageListener()
+function! CoveragePyWatch#AttachCoverageListener()
 python3 << endpython
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
@@ -43,7 +43,7 @@ observer.start()
 endpython
 endfunction
 
-function! RecalculateCoverageMarks()
+function! CoveragePyWatch#RecalculateCoverageMarks()
 python3 << endpython
 print ('Running coveragepy')
 import subprocess
@@ -58,9 +58,9 @@ with open(os.path.join(working_directory, 'out.txt'), 'w') as fp:
 print ('Updating marks')
 endpython
 
-tabdo call AddCoverageMarks()
+tabdo call CoveragePyWatch#AddCoverageMarks()
 endfunction
 
-:call EnableImports()
-command RunCoverage call RecalculateCoverageMarks()
-au BufRead *.py call AddCoverageMarks()
+:call CoveragePyWatch#EnableImports()
+command RunCoverage call CoveragePyWatch#RecalculateCoverageMarks()
+au BufRead *.py call CoveragePyWatch#AddCoverageMarks()

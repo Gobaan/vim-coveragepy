@@ -5,3 +5,4 @@ coverage
 coverage-vim.log
 out.txt
 .ycm_extra_conf.py
+cov.xml

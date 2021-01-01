@@ -5,9 +5,10 @@ verify_ssl = true
 
 [dev-packages]
 pytest = "*"
-coverage = "==5.0a6"
+coverage = "*"
 
 [packages]
+coverage = "*"
 
 [requires]
 python_version = "3.6"

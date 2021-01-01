@@ -1,4 +1,6 @@
 * Side bar with all tests and their status
+** On keypress (ctrl-t)
+** Render the name of all the tests that pass through the line under the cursor
 * Display exception for a given test case
 * Function/class display how many tests pass and fail on that line
 
