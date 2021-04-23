@@ -60,7 +60,6 @@ class PythonFileCover(object):
         return names
 
     def get_test_is_successful(self, name):
-
         return name not in self.failing_tests
 
 def find_coverage_folder():

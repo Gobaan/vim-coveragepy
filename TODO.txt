@@ -1,3 +1,4 @@
+" Fix gg being overriden
 * Side bar with all tests and their status
 ** On keypress (ctrl-t)
 ** Render the name of all the tests that pass through the line under the cursor

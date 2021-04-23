@@ -16,7 +16,6 @@ vim.command(cmd)
 endpython
 endfunction
 
-" TODO: Factor this out and call it seperately
 function! CoveragePyShow#ShowTests()
 python3 << endpython
 import vim
@@ -26,8 +25,8 @@ pos = window.cursor
 vim_mark_coverage.show_tests(vim.current.buffer, pos[0])
 endpython
     " Bind a hotkey to the panel just created
-    call keyMap#Create({'scope':'example', 'text': 'press g to goto failing test', 'key': 'g', 'callback': function  ('show_results#goto_test')})
-    call keyMap#Create({'scope':'example', 'text': 'press e to display exception', 'key': 'e', 'callback': function  ('show_results#show_exception')})
+    call keyMap#Create({'scope':'example', 'text': 'press o to open failing test', 'key': 'o', 'callback': function  ('CoveragePyShow#GotoTest')})
+    call keyMap#Create({'scope':'example', 'text': 'press e to display exception', 'key': 'e', 'callback': function  ('CoveragePyShow#ShowTests')})
     call keyMap#BindAll()
 endfunction
 

@@ -63,4 +63,4 @@ endfunction
 
 :call CoveragePyWatch#EnableImports()
 command RunCoverage call CoveragePyWatch#RecalculateCoverageMarks()
-au BufRead *.py call CoveragePyWatch#AddCoverageMarks()
+#au BufRead *.py call CoveragePyWatch#AddCoverageMarks()
