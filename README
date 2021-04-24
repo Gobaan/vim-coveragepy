@@ -3,3 +3,6 @@ uncovered tests, as well as all the lines passed by a failing test.
 
 First needs you to run coverage in the root folder
 ''' py.test --cov -rf > out.txt
+
+# TODO:
+Add installation instructions
