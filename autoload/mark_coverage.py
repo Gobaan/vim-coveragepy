@@ -117,7 +117,6 @@ def get_db_context(name):
 
     return test_lines
 
-# TODO: this is missing the file name, not sure if it matters
 def extract_exceptions():
     input_file = os.path.join(COVERAGE_FOLDER, 'out.txt')
     with open(input_file) as fp:
@@ -157,7 +156,7 @@ def get_failing_tests(pytest_output):
 
         return [], 0
 
-    failing_tests = {format_test_name(failure) for failure in failures[:-1]}
+    failing_tests = {format_test_name(failure) for failure in failures[:-1] if failure.startswith('FAILED')}
     number_failures = int(failures[-1].split()[1])
 
     if len(failing_tests) != number_failures:
