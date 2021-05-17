@@ -4,6 +4,7 @@ import coverage.numbits
 import io
 import os
 import os.path
+import re
 
 logger = logging.getLogger('coverage')
 logger.setLevel(logging.DEBUG)
@@ -20,9 +21,6 @@ def compress(arrays):
         return arrays[0]
 
     return coverage.numbits.numbits_union(arrays[0], compress(arrays[1:]))
-
-def get_absolute_path(name):
-    return os.path.join(COVERAGE_FOLDER, name)
 
 def test_name_to_path(name):
     name = name.split('.')
@@ -73,6 +71,16 @@ def find_coverage_folder():
 
     return os.path.join(coverage_folder)
 
+def get_absolute_path(name):
+    coverage_file = os.path.join(find_coverage_folder(), '.coverage')
+    with sqlite3.connect(coverage_file) as conn:
+        c = conn.cursor()
+        file_query = f"select path from file where path LIKE '%/{name}';"
+        c.execute(file_query)
+        path = c.fetchone()[0]
+
+    return path
+
 # Given a line
 # Give me a list of tests covering that function and which ones pass (if the list is empty mark the line)
 ## If the line is a non-lambda function (also bug out hard on def inside a string but I DONT CARE)
@@ -108,6 +116,29 @@ def get_db_context(name):
     test_lines = {id_test[line[1]]: line[2] for line in lines if line[1] in id_test}
 
     return test_lines
+
+# TODO: this is missing the file name, not sure if it matters
+def extract_exceptions():
+    input_file = os.path.join(COVERAGE_FOLDER, 'out.txt')
+    with open(input_file) as fp:
+        lines = ''.join(fp.readlines())
+
+    start = lines.find('=================================== FAILURES ===================================')
+    end = lines.find('----------- coverage')
+    lines = lines[start:end]
+    results = '\n' + '\n'.join(lines.split('\n')[1:])
+    regex = re.compile(r'\n___+')
+    tests = regex.split(results)
+
+    test_exception = {}
+
+    for test in tests[1:]:
+        full_test = test.split('\n')
+        name = full_test[0].strip().split()[0]
+        rest = '\n'.join(full_test[1:])
+        test_exception[name] = rest
+
+    return test_exception
 
 
 def get_failing_tests(pytest_output):
@@ -147,7 +178,11 @@ def get_file_marker(name):
     return PythonFileCover(name, test_lines, failing_tests)
 
 
+def show_exception(test_name):
+    return test_exception[test_name]
+
 COVERAGE_FOLDER = find_coverage_folder()
+test_exception = extract_exceptions()
 
 if __name__ == '__main__':
     name = '/home/lordofall/menu-translator-django/backend/translator/schema.py'

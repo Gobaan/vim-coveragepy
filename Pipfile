@@ -10,6 +10,7 @@ coverage = "==5.3"
 [packages]
 coverage = "*"
 pytest = "*"
+pytest-coverage = "*"
 
 [requires]
 python_version = "3.8"

@@ -4,7 +4,6 @@ import vim
 def is_keyword(word):
     return word.split()[0] in ('', 'def', 'class', 'else:')
 
-# TODO: Make coverage marker persist
 def mark_buffer(cb):
     if not mark_coverage.handles(cb.name):
         return
@@ -15,8 +14,6 @@ def mark_buffer(cb):
         print (f'no coverage information found for {cb.name}', e)
 
         return
-
-    print ('found coverage file')
 
     for line_number in range(len(cb)):
         sign = ''
@@ -45,14 +42,14 @@ def show_tests(cb, line_number):
 
     def get_output():
         covering_tests = marker.get_tests_covering_line(line_number)
-        result = ['Pass' if marker.get_test_is_successful(test) else 'FAIL' for test in covering_tests]
+        result = ('Pass' if marker.get_test_is_successful(test) else 'FAIL' for test in covering_tests)
         output = [f'{test} ... {result}' for test, result in zip(covering_tests, result)]
         output = '\n'.join(output)
         output = output.replace("'", "")
 
         return output
 
-    cmd = f"""execute ':call vimSidePanel#Render("{get_output()}", "coveragepy")'"""
+    cmd = f"""execute ':call vimPanel#Render("{get_output()}", "coveragepy")'"""
     vim.command(cmd)
 
     return
