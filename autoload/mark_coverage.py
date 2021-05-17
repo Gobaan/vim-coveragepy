@@ -7,7 +7,7 @@ import os.path
 import re
 
 logger = logging.getLogger('coverage')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 fh = logging.FileHandler('coverage-vim.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)

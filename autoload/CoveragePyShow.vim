@@ -45,7 +45,6 @@ line = vim.current.line
 test, status = line.split(' ... ')
 filename, function_name = test.split('::')
 message = mark_coverage.show_exception(function_name)
-filename = mark_coverage.get_absolute_path(filename)
 cmd = f"""execute ':call vimPanel#Render("{message}", "coveragepy_exception")'"""
 vim.command(cmd)
 endpython

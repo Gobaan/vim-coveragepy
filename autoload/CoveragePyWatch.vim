@@ -45,7 +45,6 @@ endfunction
 
 function! CoveragePyWatch#RecalculateCoverageMarks()
 python3 << endpython
-print ('Running coveragepy')
 import subprocess
 import vim_mark_coverage
 import mark_coverage
@@ -55,7 +54,6 @@ working_directory = mark_coverage.find_coverage_folder()
 with open(os.path.join(working_directory, 'out.txt'), 'w') as fp:
     p = subprocess.run(['py.test', '--cov', '-rf'], stdout=fp, cwd=working_directory)
 
-print ('Updating marks')
 endpython
 
 tabdo call CoveragePyWatch#AddCoverageMarks()
