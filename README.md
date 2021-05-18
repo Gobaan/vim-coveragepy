@@ -1,7 +1,7 @@
 This integrate vim with coveragepy 5.3, which tracks which tests cover which lines. This means we can mark
 uncovered tests, as well as all the lines passed by a failing test.
 
-![alt text](https://github.com/gobaan/master/example.gif "Example of vim coverage in action")
+![alt text](https://raw.githubusercontent.com/Gobaan/vim-coveragepy/master/example.gif "Example of vim coverage in action")
 
 First needs you to run coverage in the root folder
 
