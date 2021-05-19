@@ -13,6 +13,26 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
+COVERAGE_DB = '.coverage'
+def find_coverage_folder():
+    coverage_folder = os.path.join(os.getcwd())
+
+    while not os.path.isfile(os.path.join(coverage_folder, COVERAGE_DB)):
+        coverage_folder = os.path.abspath(os.path.join(coverage_folder, '..'))
+
+        if coverage_folder == '/':
+            raise TypeError('No coverage information found')
+
+    return os.path.join(coverage_folder)
+
+COVERAGE_FOLDER = find_coverage_folder()
+SUMMARY_MARKER = '=========================== short test summary info ============================\n'
+FAILURES_MARKER = '=================================== FAILURES ==================================='
+PASSES_MARKER = '==================================== PASSES'
+COVERAGE_MARKER = '----------- coverage'
+OUTPUT_FILENAME = 'out.txt'
+pytest_output_file = os.path.join(COVERAGE_FOLDER, OUTPUT_FILENAME)
+
 def compress(arrays):
     if len(arrays) == 0:
         raise TypeError("Numbits array is empty")
@@ -60,16 +80,6 @@ class PythonFileCover(object):
     def get_test_is_successful(self, name):
         return name not in self.failing_tests
 
-def find_coverage_folder():
-    coverage_folder = os.path.join(os.getcwd())
-
-    while not os.path.isfile(os.path.join(coverage_folder, '.coverage')):
-        coverage_folder = os.path.abspath(os.path.join(coverage_folder, '..'))
-
-        if coverage_folder == '/':
-            raise TypeError('No coverage information found')
-
-    return os.path.join(coverage_folder)
 
 def get_absolute_path(name):
     coverage_file = os.path.join(find_coverage_folder(), '.coverage')
@@ -118,12 +128,11 @@ def get_db_context(name):
     return test_lines
 
 def extract_exceptions():
-    input_file = os.path.join(COVERAGE_FOLDER, 'out.txt')
-    with open(input_file) as fp:
+    with open(pytest_output_file) as fp:
         lines = ''.join(fp.readlines())
 
-    start = lines.find('=================================== FAILURES ===================================')
-    end = lines.find('----------- coverage')
+    start = lines.find(FAILURES_MARKER)
+    end = min(lines.find(COVERAGE_MARKER), lines.find(PASSES_MARKER))
     lines = lines[start:end]
     results = '\n' + '\n'.join(lines.split('\n')[1:])
     regex = re.compile(r'\n___+')
@@ -147,10 +156,9 @@ def get_failing_tests(pytest_output):
 
         return name
 
-    MARKER = '=========================== short test summary info ============================\n'
     try:
         logger.debug(pytest_output)
-        failures = pytest_output[pytest_output.index(MARKER) + 1:]
+        failures = pytest_output[pytest_output.index(SUMMARY_MARKER) + 1:]
     except IndexError:
         print ("Index Error")
 
@@ -170,7 +178,6 @@ def handles(name):
 
 def get_file_marker(name):
     test_lines = get_db_context(name)
-    pytest_output_file = os.path.join(COVERAGE_FOLDER, 'out.txt')
     with open(pytest_output_file) as fp:
         failing_tests = get_failing_tests(fp.readlines())
 
@@ -180,10 +187,4 @@ def get_file_marker(name):
 def show_exception(test_name):
     return test_exception[test_name]
 
-COVERAGE_FOLDER = find_coverage_folder()
 test_exception = extract_exceptions()
-
-if __name__ == '__main__':
-    name = '/home/lordofall/menu-translator-django/backend/translator/schema.py'
-    marker = get_file_marker(name)
-    print (marker.get_tests_covering_line(7))
